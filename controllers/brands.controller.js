@@ -26,7 +26,7 @@ exports.brandsList = async (req, res) =>{
 }
 
 exports.getBrandById = async (req, res) => {
-    const { brand_id } = req.body;
+    const  brand_id  = req.query.brand_id;
 
     try {
         // Fetch brand data using the model method

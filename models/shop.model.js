@@ -67,7 +67,7 @@ exports.newShop = async (email, shop_name, owner_id, location, regno, type, desc
         const shops =await this.getMyshops(owner_id)
 
         if(shops.length > 0){
-            return { message: 'YOu can only register one shop', success:false }
+            return { message: 'You can only register one shop', success:false }
         }
 
         console.log(shops)

@@ -1,12 +1,13 @@
 
+const { param } = require('express-validator');
 const categoryModel = require('../models/category.model')
 
 
 exports.newCategory = async (req, res)=>{
-    const { category_name, description, longname } = req.body;
+    const { category_name, description, longname, image } = req.body;
 
     try {
-        const category = await categoryModel.createCategory(category_name, longname, description);
+        const category = await categoryModel.createCategory(category_name, longname, description, image);
 
 
 
@@ -30,7 +31,15 @@ exports.categorylist = async (req, res)=>{
 }
 
 exports.categoryById = async (req, res) =>{
-    const { category_id } = req.body;
+    
+    // console.log(req.query)
+    
+    const params = req.query
+    
+    const  category_id  = params.category_id;
+
+
+    
 
     try {
         
@@ -54,14 +63,15 @@ exports.categoryById = async (req, res) =>{
     } catch (error) {
         return res.status(500).json(
             {
-                error: 'Internal server error',
+                message: 'Internal server error',
+                error:error.message
             }
         )
     }
 }
 
 exports.deleteCategory = async(req, res)=>{
-    const {category_id} = req.body
+    const category_id = req.query.category_id
 
     try {
         
@@ -80,4 +90,4 @@ exports.deleteCategory = async(req, res)=>{
         })
     }
 
-}
+} 

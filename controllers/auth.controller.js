@@ -27,26 +27,39 @@ exports.login = async(req, res) =>{
     try {
         const user = await userModel.findUserByEmail(email);
 
-        if(!user){
-            res.status(404).json({error: 'User not found'});
+        if(!user.success){
+            return res.status(400).json(
+                {
+                    message: user.message,
+                    success:user.success
+                }
+            )
         }
-        const passowrdvalid = await bcrypt.compare(password, user.password);
+
+        const userdetails = user.user
+        const passowrdvalid = await bcrypt.compare(password, userdetails.password);
 
         if(!passowrdvalid){
-            return res.status(401).json({error: 'Invalid password'});
+            return res.status(401).json(
+                {
+                    message: 'Invalid password',
+                    success:false
+                }
+            );
         }
 
         
-        if(user.role == 'vendor'){
-            const shop = await shopModel.getMyshops(user.id);
+        if(userdetails.role == 'vendor'){
+            const shop = await shopModel.getMyshops(userdetails.id);
                 const token = jwt.sign(
                     {
-                        userid: user.id,
-                        userrole:user.role,
+                        userid: userdetails.id,
+                        userrole:userdetails.role,
+                        useremail:userdetails.email
                     },
                     process.env.JWT_SECRET,
                     {
-                        expiresIn: '3h'
+                        expiresIn: '6h'
                     }
 
                 )
@@ -59,14 +72,28 @@ exports.login = async(req, res) =>{
                         },
                         process.env.JWT_SECRET,
                         {
-                            expiresIn: '3h'
+                            expiresIn: '6h'
+                        }
+                    )
+
+                    return res.status(200).json(
+                        {
+                            message: 'vendor Login successfull',
+                            token: token,
+                            shoptoken:shoptoken,
+                            success:true
                         }
                     )
     
-                return res.status(201).json({ token:token, shoptoken:shoptoken})
 
                 }else{
-                    return res.status(201).json({ token:token})
+                    return res.status(200).json(
+                        {
+                            message: 'Login successfull',
+                             token:token,
+                             success:true
+                        }
+                    )
                 }
 
 
@@ -74,22 +101,33 @@ exports.login = async(req, res) =>{
         }else{
             const token = jwt.sign(
                 {
-                    userid: user.id,
-                    userrole:user.role
+                    userid: userdetails.id,
+                    userrole:userdetails.role,
+                    useremail:userdetails.email
                 },
                 process.env.JWT_SECRET,
                 {
-                    expiresIn: '3h'
+                    expiresIn: '6h'
                 }
-            );
 
-            return res.status(201).json({ token:token})
+            )
+
+            return res.status(200).json(
+                {
+                    message: 'Login successfull',
+                     token:token,
+                     success:true
+                }
+            )
         }
 
 
         
     } catch (error) {
-         return res.status(500).json({error: error.message})
+         return res.status(500).json({
+            message:error.message,
+            errordetails: error
+        })
     }
 }
 

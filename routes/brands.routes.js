@@ -6,6 +6,6 @@ const brandController  = require('../controllers/brands.controller')
 
 router.post('/newbrand', brandController.newBrand);
 router.get('/brandsList', brandController.brandsList)
-router.post('/brand', brandController.getBrandById)
+router.get('/brand', brandController.getBrandById)
 
 module.exports = router

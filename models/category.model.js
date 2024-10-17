@@ -2,13 +2,13 @@ const pool = require('../config/db.config')
 
 
 // create a new category 
-exports.createCategory = async(category_name, longname, description) =>{
+exports.createCategory = async(category_name, longname, description, image) =>{
     try {
         const conn = await pool.getConnection();
 
         const result =  await conn.query(
-            "insert into categories(category_name, longname, description) values(?, ?,?)",
-            [category_name, longname, description]
+            "insert into categories(category_name, longname, description, image) values(?, ?,?,?)",
+            [category_name, longname, description, image]
         )
 
         conn.release();

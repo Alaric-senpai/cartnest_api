@@ -70,7 +70,10 @@ exports.findUserByEmail = async(email) =>{
             [email]
         );
         conn.release();
-        return result[0];
+        if(result.length == 0){
+            return { message: 'User not found', success:false }
+        }
+        return { message: 'User found', user:result[0], success:true };
     } catch (error) {
         throw error
     }

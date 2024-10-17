@@ -43,7 +43,7 @@ exports.createShop = async (req, res) => {
 };
 
 exports.getShopById = async (req, res) =>{
-    const { shop_id } = req.body
+    const  shop_id  = req.query.shop_id
 
     try {
         

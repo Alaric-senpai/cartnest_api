@@ -22,18 +22,18 @@ app.use(helmet());
 
 // Enable CORS with specific domain
 // const corsOptions = {
-//     origin: 'https://localhost:3500', // Replace with your frontend domain
+//     origin: 'https://localhost:4200', // Replace with your frontend domain
 //     optionsSuccessStatus: 200
 // };
-// app.use(cors(corsOptions));
+app.use(cors());
 
 // Rate Limiting to prevent DoS attacks
-const apiLimiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // 1 minutes
-    max: 100, // Limit each IP to 100 requests per window
-    message: 'Too many requests from this IP, please try again later'
-});
-app.use('/cartnest/', apiLimiter);
+// const apiLimiter = rateLimit({
+//     windowMs: 1 * 60 * 1000, // 1 minutes
+//     max: 100, // Limit each IP to 100 requests per window
+//     message: 'Too many requests from this IP, please try again later'
+// });
+// app.use('/cartnest/', apiLimiter);
 
 // Limit payload size
 app.use(express.json());

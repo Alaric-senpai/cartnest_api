@@ -7,9 +7,9 @@
     "server": "nodemon server.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "kahuho Charles",
   "license": "ISC",
-  "description": "",
+  "description": "a api for a sample ecommerce site",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
