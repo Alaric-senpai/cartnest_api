@@ -59,21 +59,31 @@ async function getshopCount(owner_id) {
 
 exports.newShop = async (email, shop_name, owner_id, location, regno, type, description, hours, years) => {
 
+    // console.log("email:" + email)
+    // console.log("shop name:" + shop_name)
+    // console.log("owner_id:" + owner_id)
+    // console.log("location:" + location)
+    // console.log("description:" + description)
+    // console.log("regno:" + regno)
+    // console.log("years:" + years)
+
+
     if(owner_id == undefined){
         return { message: 'Owner id not passed', success:false }
     }
 
     try {
         const shops =await this.getMyshops(owner_id)
-
-        if(shops.length > 0){
+        
+        if(shops.success){
             return { message: 'You can only register one shop', success:false }
         }
+        // console.log(shops)
 
-        console.log(shops)
+
 
         const registerShop = await AddShop(shop_name, email, owner_id, regno);
-
+        // console.log(registerShop)
         if (!registerShop.success) {
             return { message: registerShop.message, success: registerShop.success };
         }
@@ -92,16 +102,10 @@ exports.newShop = async (email, shop_name, owner_id, location, regno, type, desc
 };
 
 async function AddShop(name, email, owner_id, regno) {
+    // console.log(name + email + owner_id + regno)
     try {
         
         const conn = await pool.getConnection();
-
-        // const shopcount = await  getshopCount(owner_id);
-
-
-        // if (shopcount.count > 0) {
-        //     return { message: 'You can only register one shop', success: false };
-        // }
 
 
         await conn.query(
@@ -119,7 +123,7 @@ async function AddShop(name, email, owner_id, regno) {
 
         conn.release();
 
-        if (!result.affectedRows) {
+        if (!result.insertId) {
             return { message: 'Shop creation failed', success: false };
         }
 
@@ -247,5 +251,64 @@ exports.myShop = async(owner_id) =>{
         
         throw error;
         
+    }
+}
+
+exports.unverifiedShops = async()=>{
+    try{
+        const conn = await pool.getConnection();
+
+        const shops = await conn.query(
+            "select * from shops where status ='pending'"
+            );
+
+        conn.release()
+
+        if(!shops){
+            return {
+                message: 'Query failed',
+                success: 'false'
+            }
+
+        }
+
+        return {
+            message: 'Vendors found',
+            shops:shops,
+            success:true
+        }
+    }catch(error){
+        throw error;
+    }
+
+}
+
+exports.updateShop  = async(status_text, shop_id)=>{
+    // console.log(status_text)
+    // console.log(shop_id)
+    try {
+        
+        const conn = await pool.getConnection();
+
+        const update = await conn.query(
+            "update shops set status=? where shop_id=?",
+            [status_text, shop_id]
+        )
+        conn.release()
+        if(conn.affectedRows < 1){
+            return {
+                message: "shop update failed",
+                success: false
+            }
+
+        }
+
+        return {
+            message: `shop ${status_text}ed successfully`,
+            success:true
+        }
+
+    } catch (error) {
+        throw error;
     }
 }

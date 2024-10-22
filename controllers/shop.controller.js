@@ -1,43 +1,52 @@
 const shopModel = require('../models/shop.model');
-
+const jwt = require('jsonwebtoken')
 exports.createShop = async (req, res) => {
     const { 
-        shop_name,
+        name,
         location,
-        shop_email,
+        email,
         hours,
-        shop_type,
+        type,
         description,
         regno,
         years
     } = req.body;
 
     const user = req.user; // User should be attached from middleware
-
-    console.log(user);
-    
-
-    // Check if the user role is valid for shop creation
     if (user.userrole !== 'vendor') {
         return res.status(403).json({ message: 'Access denied. Only vendors can create shops.', success: false });
     }
+    // console.log(user)
 
     try {
 
-    
-
-        const shop = await shopModel.newShop(shop_email, shop_name, user.userid, location, regno, shop_type, description, hours, years);
-
+        const shop = await shopModel.newShop(email, name, user.userid, location, regno, type, description, hours, years);
+        // console.log(shop)
         if (!shop.success) {
             return res.status(400).json({ message: shop.message, success: shop.success });
         }
 
-        return res.status(201).json({ message: shop.message, success: shop.success });
+        const data = (await shopModel.myShop(user.userid)).shop
+        // console.log(data)
+
+        const shoptoken = jwt.sign(
+            {
+                shopid:data.shop_id
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: '6h'
+            }
+        )
+        
+
+
+        return res.status(201).json({ message: shop.message, shoptoken:shoptoken , success: shop.success });
 
     } catch (error) {
         return res.status(500).json({
             message: 'Internal server error',
-            error: error.message,
+            error: error
         });
     }
 };
@@ -116,4 +125,75 @@ exports.myShop = async (req, res) =>{
         )
     }
 
+}
+
+exports.unverifiedShops  = async(req, res)=>{
+    try{
+        const shops = await shopModel.unverifiedShops();
+
+        if(!shops.success){
+            return res.status(400).json(
+            {
+                message: shops.message,
+                success: shops.success
+            })
+        }
+
+        return res.status(200).json(
+        {
+            message: shops.message,
+            shops:shops.shops,
+            success:shops.success
+        })
+
+    }catch (error){
+        return res.status(500).json(
+            {
+                message: 'Internal server error',
+                error:error.message
+            }
+        )
+    }        
+    }
+
+
+exports.updateShop = async(req, res)=>{
+
+    const { status, vendor } = req.body
+
+    // const params = req.body
+
+    // console.log(req.body)
+
+    // const status_text = params.status
+
+    // const shop_id = params.vendor
+    try {
+
+
+        const update = await shopModel.updateShop(status, vendor)
+
+        if(!update.success){
+            return res.status(400).json(
+                {
+                    message: update.message,
+                    success:update.success
+                }
+            )
+        }
+        return res.status(200).json(
+            {
+                message: update.message,
+                success:update.success
+            }
+        )
+        
+    } catch (error) {
+        return res.status(500).json(
+            {
+                message: 'Internal server error',
+                error:error.message
+            }
+        )        
+    }
 }

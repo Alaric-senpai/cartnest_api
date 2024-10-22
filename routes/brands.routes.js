@@ -4,8 +4,8 @@ const router = express.Router();
 
 const brandController  = require('../controllers/brands.controller')
 
-router.post('/newbrand', brandController.newBrand);
-router.get('/brandsList', brandController.brandsList)
+router.post('/new', brandController.newBrand);
+router.get('/list', brandController.brandsList)
 router.get('/brand', brandController.getBrandById)
 
 module.exports = router

@@ -6,7 +6,6 @@ const shopModel = require('../models/shop.model')
 // register logic 
 exports.register = async (req, res) =>{
     const { username, email, role, password, firstname, lastname} = req.body;
-
     try {
         const user = await userModel.createUser(username,email,role, password, firstname, lastname);
         if(user.success){
@@ -81,6 +80,8 @@ exports.login = async(req, res) =>{
                             message: 'vendor Login successfull',
                             token: token,
                             shoptoken:shoptoken,
+                            userrole:userdetails.role,
+                            shopstatus: data.status,
                             success:true
                         }
                     )
@@ -91,6 +92,7 @@ exports.login = async(req, res) =>{
                         {
                             message: 'Login successfull',
                              token:token,
+                            userrole:userdetails.role,
                              success:true
                         }
                     )
@@ -116,6 +118,7 @@ exports.login = async(req, res) =>{
                 {
                     message: 'Login successfull',
                      token:token,
+                     userrole:userdetails.role,
                      success:true
                 }
             )

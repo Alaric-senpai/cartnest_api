@@ -4,10 +4,11 @@ const categoryModel = require('../models/category.model')
 
 
 exports.newCategory = async (req, res)=>{
-    const { category_name, description, longname, image } = req.body;
+    const { name, description, longname, image } = req.body;
+
 
     try {
-        const category = await categoryModel.createCategory(category_name, longname, description, image);
+        const category = await categoryModel.createCategory(name, longname, description, image);
 
 
 

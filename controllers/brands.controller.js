@@ -1,10 +1,10 @@
 const brandModel = require('../models/brands.model')
 
 exports.newBrand = async(req, res) =>{
-    const {brand_name} = req.body;
+    const {name} = req.body;
 
     try {
-        const result = await brandModel.createBrand(brand_name);
+        const result = await brandModel.createBrand(name);
 
             return res.status(201).json({message: 'Brand created successfully'})
 

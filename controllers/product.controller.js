@@ -176,6 +176,44 @@ exports.getProductsbyBrand = async (req, res)=>{
     }
 }
 
+exports.getProductsbyVendor = async (req, res)=>{
+    try {
+        
+        const params = req.shop
+
+
+        const shopid = params.shopid;
+
+        const products = await productModel.getproductsByShop(shopid);
+
+        if(!products.success){
+            return res.status(400).json(
+                {
+                    message: products.message,
+                    success:products.success
+                }
+            )
+        }
+
+        return res.status(200).json(
+            {
+                message: products.message,
+                products:products.product,
+                success:products.success
+            }
+        )
+
+    } catch (error) {
+        return res.status(500).json(
+            {
+                message: error.message,
+                error: error.error
+            }
+        )
+    }
+}
+
+
 exports.trendingProducts = async(req, res)=>{
     try{
         const products = await productModel.trendingproducts();

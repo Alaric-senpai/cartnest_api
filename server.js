@@ -11,7 +11,8 @@ const brandRoutes = require('./routes/brands.routes');
 const categoryRoutes = require('./routes/category.routes');
 const shopRoutes = require('./routes/shop.routes');
 const productRoutes = require('./routes/product.routes')
-
+const orderRoutes = require('./routes/orders.routes')
+const cartRoutes = require('./routes/carts.routes')
 // Server config
 dotenv.config();
 const app = express();
@@ -48,6 +49,8 @@ app.use('/cartnest/brands', brandRoutes);
 app.use('/cartnest/categories', categoryRoutes);
 app.use('/cartnest/shops', shopRoutes);
 app.use('/cartnest/products', productRoutes)
+app.use('/cartnest/orders', orderRoutes)
+app.use('/cartnest/carts', cartRoutes)
 // Start the server
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

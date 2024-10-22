@@ -11,8 +11,8 @@ exports.createUser = async(username, email, role, password, firstname, lastname)
 
         const userRegisered = await this.findUserByEmail(email);
 
-        if(userRegisered){
-            return { Message: 'User is Already registered try to login', success:true }
+        if(userRegisered.success){
+            return { message: 'User is Already registered try to login', success:true }
         }
         const hashed = await bcrypt.hash(password, 10);
         const conn = await pool.getConnection();

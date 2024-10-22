@@ -188,7 +188,7 @@ exports.getproductsByBrand = async (brand_id)=>{
         const conn = await pool.getConnection();
 
         const product = await conn.query(
-            "select * from products where brand_id=?",
+            "select * from products where brand=?",
             [brand_id]
         )
 
@@ -213,7 +213,7 @@ exports.getproductsByShop = async (shop_id)=>{
         const conn = await pool.getConnection();
 
         const product = await conn.query(
-            "select * from products where shop_id=?",
+            "select * from products where vendor=?",
             [shop_id]
         )
 
@@ -223,7 +223,7 @@ exports.getproductsByShop = async (shop_id)=>{
             return { message: 'Product fetch failed', success:false }
         }
 
-        return { message: "product found", product:product[0], success:true }
+        return { message: "product found", product:product, success:true }
 
     } catch (error) {
         throw error
