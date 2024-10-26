@@ -2,16 +2,27 @@ const jwt  = require('jsonwebtoken');
 const userModel =  require('../models/user.model')
 const bcrypt = require('bcryptjs')
 const shopModel = require('../models/shop.model')
-
+const mailer = require('../mailer/mail.send')
 // register logic 
 exports.register = async (req, res) =>{
     const { username, email, role, password, firstname, lastname} = req.body;
     try {
         const user = await userModel.createUser(username,email,role, password, firstname, lastname);
-        if(user.success){
-            return res.status(201).json({message: user.message, success:user.success })
+        if(!user.success){
+            return res.status(401).json({message: user.message, success:user.success })
         }
-        return res.status(401).json({message: user.message, success:user.success })
+        // let fullname = firstname + " " + lastname;
+        
+        
+        // const welcome = await mailer.WelcomeMail(email, fullname, 'Welcome to cartnest', 'welcom to the service' )
+        // console.log(welcome)
+        // if (!welcome.success) {
+            return res.status(401).json({message: welcome.message, success:welcome.success })
+            
+        // }
+        // else {
+            return res.status(201).json({message: user.message, success:user.success })
+        // }
 
     } catch (error) {
         return res.status(500).json({error: 'Internal server error', details: error.message});
@@ -55,6 +66,7 @@ exports.login = async(req, res) =>{
                         userid: userdetails.id,
                         userrole:userdetails.role,
                         useremail:userdetails.email
+                        
                     },
                     process.env.JWT_SECRET,
                     {
@@ -67,7 +79,8 @@ exports.login = async(req, res) =>{
                     const data = shop.shop
                     const shoptoken = jwt.sign(
                         {
-                            shopid:data.shop_id
+                            shopid:data.shop_id,
+                            status:data.status
                         },
                         process.env.JWT_SECRET,
                         {

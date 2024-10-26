@@ -71,11 +71,17 @@ exports.myCarts = async(req, res)=>{
 }
 
 exports.addtocart = async(req, res)=>{
-    const { product, vendor , quantity, cart } = req.body
+    // const { product, vendor , quantity, cart } = req.body
 
     const user = req.user
 
+
+    const  { quantity, product, vendor, cart  } = req.body
+
     const userid = user.userid
+    // console.log(req.body)
+
+    // console.log(userid)
 
     try {
         
@@ -97,6 +103,7 @@ exports.addtocart = async(req, res)=>{
         )
 
     } catch (error) {
+        console.error(error)
         return res.status(500).json(
             {
                 message: 'Internal server error',
