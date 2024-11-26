@@ -70,6 +70,29 @@ exports.myCarts = async(req, res)=>{
     }
 }
 
+exports.cartdata = async(req, res)=>{
+    try {
+        
+        const params = req.query
+
+        const cartid = params.cart 
+        const cart = await cartsModel.cartInfo(cartid)
+
+        if(cart.success){
+            return res.status(200).json(cart)
+        }
+        return res.status(400).json(cart)
+
+    } catch (error) {
+        return res.status(500).json(
+            {
+                message: 'Internal server error',
+                error: error
+            }
+        )
+    }
+}
+
 exports.addtocart = async(req, res)=>{
     // const { product, vendor , quantity, cart } = req.body
 
@@ -180,5 +203,48 @@ exports.deletecart = async(req, res)=>{
             message: 'Internal server error',
             error:error.message
         })
+    }
+}
+
+
+exports.ProductQuantity = async(req, res)=>{
+    const { cart, product, quantity} = req.body
+    console.log(req.body)
+    const user = req.user
+    const userid = user.userid
+
+    try{
+    const result = await cartsModel.ModifyGood(cart, quantity, userid, product)
+
+
+    if(result.success){
+        return res.status(200).json({ message: result.message, success:result.success })
+    }
+        return res.status(400).json({ message: result.message, success:result.success })
+
+
+    } catch ( error){
+        return res.status(500).json({ message: 'Internal server error', success:false , error:error })
+
+    }
+}
+
+exports.Removeproduct = async(req, res)=>{
+    const params = req.query;
+    const cart = params.cart
+    const product = params.product
+
+    try{
+    const result = await cartsModel.RemoveProduct(cart, product)
+
+    if(result.success){
+        return res.status(200).json({ message: result.message, success:result.success })
+    }
+        return res.status(400).json({ message: result.message, success:result.success })
+
+
+    } catch ( error){
+        return res.status(500).json({ message: 'Internal server error', success:false , error:error })
+
     }
 }

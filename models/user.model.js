@@ -149,3 +149,134 @@ exports.deleteUserByEmail = async(email) =>{
         throw error
     }
 }
+
+exports.storeToken = async (email, code) => {
+    try {
+        const conn = await pool.getConnection();
+
+        // Run the update query to store the reset token
+        const query = await conn.query(
+            "UPDATE users SET resetToken = ?, updated_at = ? WHERE email = ?",
+            [code, new Date(), email]
+        );
+
+        conn.release();
+
+        console.log(query)
+
+        // Check if the query affected any rows
+        if (query.affectedRows > 0) {
+            return {
+                message: 'Reset token set successfully',
+                success: true,
+            };
+        }
+
+        return {
+            message: 'Reset token not set. Email might not exist.',
+            success: false,
+        };
+    } catch (error) {
+        console.error("Error in storeToken:", error);
+        throw error;
+    }
+};
+
+
+exports.newPass = async(email, password) =>{
+    try {
+        
+        const conn = await pool.getConnection()
+
+        const hashedPass = await bcrypt.hash(password, 10)
+
+        const query = await conn.query(
+            "update users set password=?, resetToken=? where email=? ",
+            [hashedPass, null, email]
+        )
+
+        if(query.affectedRows > 0){
+            return {
+                message: 'Password updated successfully',
+                success: true
+            }
+        }
+
+        return {
+            message: 'Password update failed',
+            success: false
+        }
+
+    } catch (error) {
+        throw error
+    }
+}
+
+exports.confirmToken = async (email, token) => {
+    try {
+        const conn = await pool.getConnection();
+
+        // Fetch the user by email
+        const query = await conn.query(
+            "SELECT resetToken FROM users WHERE email = ? LIMIT 1",
+            [email]
+        );
+
+        conn.release();
+
+        console.log(query)
+        // Check if user exists and token matches
+        if (query.length === 0) {
+            return {
+                message: 'User not found',
+                success: false,
+            };
+        }
+
+        const storedToken = query[0].resetToken;
+        if (storedToken === token) {
+            return {
+                message: 'Token matched successfully',
+                success: true,
+            };
+        }
+
+        return {
+            message: 'Token does not match',
+            success: false,
+        };
+    } catch (error) {
+        console.error("Error in confirmToken:", error);
+        throw error;
+    }
+};
+
+exports.CustomerInfo  = async(userid)=>{
+    try {
+        
+        const conn = await pool.getConnection()
+
+        const query = await conn.query(
+            "select * from customers where user_id=? limit 1",
+            [userid]
+        )
+
+        conn.release()
+
+        if(query){
+            return {
+                 message: 'Customer info found',
+                 customer: query[0],
+                 success: true
+
+            }
+        }    
+        return {
+            message: 'Query error',
+            success: false
+        }    
+
+    } catch (error) {
+        throw error
+    }
+}

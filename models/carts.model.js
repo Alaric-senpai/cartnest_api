@@ -127,6 +127,15 @@ exports.addTocart = async (user_id, cartid, productid, vendor, quantity) => {
             };
         }
 
+        const editable = await isEditable(cartid);
+
+        if(!editable.editable){
+            return {
+                message: editable.message,
+                success: false
+            }
+        }
+
         const good = await addGoods(user_id, vendor, productid, quantity, cartid);
 
         if (!good.success) {
@@ -145,6 +154,38 @@ exports.addTocart = async (user_id, cartid, productid, vendor, quantity) => {
         throw error;
     }
 };
+
+
+async function isEditable(cartid) {
+    // body...
+
+    try{
+        const conn = await pool.getConnection()
+
+        const query = await conn.query("select * from carts where id=?", [cartid])
+
+        const cart = query[0]
+
+        conn.release()
+
+        if(cart.is_editable == 1){
+            return {
+                message: "Cart is editable",
+                editable:true
+            }
+        }
+
+        return {
+            message: "cart is not editable",
+            editable: false
+        }
+
+    }catch(error){
+        throw error
+    }
+}
+
+
 
 async function addGoods(userid, vendor, product, quantity, cart) {
     try {
@@ -172,6 +213,36 @@ async function addGoods(userid, vendor, product, quantity, cart) {
         throw error;
     }
 }
+
+exports.cartInfo = async(cartid)=>{
+    try {
+        
+        const conn = await pool.getConnection()
+
+        const query  = await conn.query(
+            "select * from carts where id=?",
+            [cartid]
+        )
+
+        conn.release()
+
+        if(query){
+            return {
+                message: 'Cart Found',
+                cart:query[0],
+                success: true
+            }
+        }
+        return {
+            message: 'Cart not found',
+            success: false
+        }
+
+    } catch (error) {
+        throw error
+    }
+}
+
 
 exports.cartGoods = async (userid, cartid) => {
     try {
@@ -229,3 +300,56 @@ exports.deletecart = async (userid, cartid) => {
         throw error;
     }
 };
+
+exports.ModifyGood = async (cart, quantity, userid, product) => {
+    const conn = await pool.getConnection();
+
+    try {
+        const query = await conn.query(
+            "UPDATE carted_goods SET quantity = ?, updated_at = ? WHERE user_id = ? AND cart_id = ? and product_id=?",
+            [quantity, new Date(), userid, cart, product]
+        );
+
+        if (query.affectedRows > 0) {
+            return {
+                message: 'Quantity updated successfully',
+                success: true
+            };
+        }
+
+        return {
+            message: 'Quantity update failed',
+            success: false
+        };
+
+    } catch (error) {
+        throw error;
+    } finally {
+        conn.release(); // Ensure the connection is released after use
+    }
+};
+
+exports.RemoveProduct = async (cart_id, productid)=>{
+    try{
+        const conn = await pool.getConnection()
+
+        const query  = await conn.query( 
+        "delete from carted_goods where cart_id=? and product_id=?", [cart_id, productid] );
+
+
+        conn.release()
+        if(query){
+            return {
+                message: 'Product removed from cart ',
+                success: true
+            }
+        }
+
+        return {
+            message: 'query failed',
+            success: false
+        }
+    } catch (error){
+        throw error
+    }
+}

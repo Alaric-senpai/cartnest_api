@@ -212,8 +212,6 @@ exports.getProductsbyVendor = async (req, res)=>{
         )
     }
 }
-
-
 exports.trendingProducts = async(req, res)=>{
     try{
         const products = await productModel.trendingproducts();

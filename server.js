@@ -13,10 +13,11 @@ const shopRoutes = require('./routes/shop.routes');
 const productRoutes = require('./routes/product.routes')
 const orderRoutes = require('./routes/orders.routes')
 const cartRoutes = require('./routes/carts.routes')
+const mailerRoutes = require('./routes/mailer.routes')
 // Server config
 dotenv.config();
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3500;
 
 // Apply security headers with helmet
 app.use(helmet());
@@ -48,9 +49,10 @@ app.use('/cartnest/general', generalroutes);
 app.use('/cartnest/brands', brandRoutes);
 app.use('/cartnest/categories', categoryRoutes);
 app.use('/cartnest/shops', shopRoutes);
-app.use('/cartnest/products', productRoutes)
-app.use('/cartnest/orders', orderRoutes)
-app.use('/cartnest/carts', cartRoutes)
+app.use('/cartnest/products', productRoutes);
+app.use('/cartnest/orders', orderRoutes);
+app.use('/cartnest/carts', cartRoutes);
+// app.use('/cartnest/mail', mailerRoutes);
 // Start the server
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
