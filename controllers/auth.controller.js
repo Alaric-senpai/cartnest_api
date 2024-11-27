@@ -245,3 +245,24 @@ exports.confirm = async (req, res) => {
         )
     }
 }
+
+exports.user = async(req, res)=>{
+    try {
+
+        const user = req.user.useremail 
+
+        const data = await userModel.findUserByEmail(user)
+
+        if(data.success){
+            return res.status(200).json(data)
+        }
+        return res.status(400).json(data)
+        
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message:error.message,
+            errordetails: error
+        })
+    }
+}
