@@ -9,6 +9,6 @@ router.get('/server', general.server)
 router.get('/users', general.users);
 router.get('/admins', general.admins),
 router.get('/vendors', general.vendors);
-router.get('/customers', general.customers)
-router.get('/shops', general.listShops)
+router.get('/customers', general.customers);
+router.get('/shops', general.listShops);
 module.exports = router
