@@ -2,7 +2,8 @@ const jwt  = require('jsonwebtoken');
 const userModel =  require('../models/user.model')
 const bcrypt = require('bcryptjs')
 const shopModel = require('../models/shop.model')
-const mail = require('../mailer/send.email')
+// const mail = require('../mailer/send.email')
+const mailer = require('../mailer/send.email')
 
 // register logic 
 exports.register = async (req, res) =>{
@@ -15,19 +16,19 @@ exports.register = async (req, res) =>{
         // let fullname = firstname + " " + lastname;
         
         
-        // const welcome = await mailer.WelcomeMail(email, fullname, 'Welcome to cartnest', 'welcom to the service' )
+        const welcome = await mailer.WelcomeEmail(username, email, lastname);
         // console.log(welcome)
-        // if (!welcome.success) {
+        if (!welcome.success) {
             return res.status(401).json({message: welcome.message, success:welcome.success })
             
-        // }
-        // else {
+        }
+        else {
             return res.status(201).json({message: user.message, success:user.success })
-        // }
+        }
 
     } catch (error) {
 
-        return res.status(500).json({error: 'Internal server error', details: error.message});
+        return res.status(500).json({message: 'Internal server error', details: error.message, });
     }
 }
 
