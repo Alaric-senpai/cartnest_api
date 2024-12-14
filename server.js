@@ -22,6 +22,23 @@ const port = process.env.PORT || 3500;
 // Apply security headers with helmet
 app.use(helmet());
 
+
+const allowedOrigins = [
+    'https://www.cartnest.site',
+    'https://cartnest.site',
+    'https://cartnest.vercel.app'
+]
+
+const corsOptions ={
+    origin: function( origin, callback){
+        if (allowedOrigins.includes(origin) || !origin){
+            callback(null, true)
+        } else{
+            callback(new Error('Not allowed by cors'))
+        }
+    }
+}
+
 // Enable CORS with specific domain
 // const corsOptions = {
 //     origin: 'https://localhost:4200', // Replace with your frontend domain
