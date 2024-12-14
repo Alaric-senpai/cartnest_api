@@ -4,6 +4,11 @@ const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 
+const treblle = require('@treblle/express')
+// const app = express()
+
+
+
 // Routes imports
 const authRoutes = require('./routes/auth.routes');
 const generalroutes = require('./routes/general.routes');
@@ -18,6 +23,15 @@ const mailerRoutes = require('./routes/mailer.routes')
 dotenv.config();
 const app = express();
 const port = process.env.PORT || 3500;
+
+app.use(
+    treblle({
+      apiKey: process.env.TREBLLE_API_KEY,
+      projectId: process.env.TREBLLE_PROJECT_ID,
+      additionalFieldsToMask: [],
+    })
+  )
+  
 
 // Apply security headers with helmet
 app.use(helmet());
