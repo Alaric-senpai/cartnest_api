@@ -44,7 +44,7 @@ const corsOptions ={
 //     origin: 'https://localhost:4200', // Replace with your frontend domain
 //     optionsSuccessStatus: 200
 // };
-app.use(cors());
+app.use(cors(corsOptions));
 
 // Rate Limiting to prevent DoS attacks
 // const apiLimiter = rateLimit({
