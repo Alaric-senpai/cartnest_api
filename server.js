@@ -26,8 +26,8 @@ const port = process.env.PORT || 3500;
 
 app.use(
     treblle({
-      apiKey: process.env.TREBLLE_API_KEY,
-      projectId: process.env.TREBLLE_PROJECT_ID,
+      apiKey: process.env.TREBLLE_API_KEY || 'B9mW5zbcarNIlLxEZsSgtk8Lp9TtdN4PnXRIejHhp7YoQkNWh7XbRQ4ytFpuibjH',
+      projectId: process.env.TREBLLE_PROJECT_ID || 'xEIrA9DWx6KSdi3',
       additionalFieldsToMask: [],
     })
   )
