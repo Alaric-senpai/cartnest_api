@@ -3,9 +3,8 @@ const dotenv = require('dotenv');
 const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
-
+// const EnvConfig = require('./env.config')
 const treblle = require('@treblle/express')
-// const app = express()
 
 
 
@@ -19,28 +18,35 @@ const productRoutes = require('./routes/product.routes')
 const orderRoutes = require('./routes/orders.routes')
 const cartRoutes = require('./routes/carts.routes')
 const mailerRoutes = require('./routes/mailer.routes')
-// Server config
-dotenv.config();
-const app = express();
-const port = process.env.PORT || 3500;
+const AnalyticsRoutes = require('./routes/analytics.routes');
+const envConfig = require('./env.config');
+const landingPageRoutes = require('./routes/landingPageRoutes');
+const systemAnalyticsSalesRoutes = require('./routes/systemAnalyticsSalesRoutes');
+const systemAnalyticsVendorsRoutes = require('./routes/systemAnalyticsVendorRoutes');
 
-app.use(
-    treblle({
-      apiKey: process.env.TREBLLE_API_KEY || 'B9mW5zbcarNIlLxEZsSgtk8Lp9TtdN4PnXRIejHhp7YoQkNWh7XbRQ4ytFpuibjH',
-      projectId: process.env.TREBLLE_PROJECT_ID || 'xEIrA9DWx6KSdi3',
-      additionalFieldsToMask: [],
-    })
-  )
+
+// Server config
+const app = express();
+const port = envConfig.PORT ;
+
+// app.use(
+//     treblle({
+//       apiKey: envConfig.TREBLLE_API_KEY, 
+//       projectId: envConfig.TREBLLE_PROJECT_ID,
+//       additionalFieldsToMask: [],
+//     })
+//   )
   
 
 // Apply security headers with helmet
-app.use(helmet());
+// app.use(helmet());
 
 
 const allowedOrigins = [
     'https://www.cartnest.site',
     'https://cartnest.site',
-    'https://cartnest.vercel.app'
+    'https://cartnest.vercel.app',
+    'http://localhost:4200'
 ]
 
 const corsOptions ={
@@ -61,18 +67,31 @@ const corsOptions ={
 app.use(cors(corsOptions));
 
 // Rate Limiting to prevent DoS attacks
-// const apiLimiter = rateLimit({
-//     windowMs: 1 * 60 * 1000, // 1 minutes
-//     max: 100, // Limit each IP to 100 requests per window
-//     message: 'Too many requests from this IP, please try again later'
-// });
-// app.use('/cartnest/', apiLimiter);
+const apiLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minutes
+    max: 200, // Limit each IP to 100 requests per window
+    message: 'Too many requests from this IP, please try again later',
+    
+});
+app.use('/cartnest/', apiLimiter);
+
+app.use('/', mapRequests)
+
+function mapRequests(req, res, next){
+
+
+    console.log('A new request for', req.originalUrl, 'issued from host', req.hostname, 'ip address', req.ip)
+    next()
+    // console.log(res)
+
+}
+
 
 // Limit payload size
 app.use(express.json());
-
+app.use(express.urlencoded({ extended: true })); // For form data
 // Disable x-powered-by header
-// app.disable('x-powered-by');
+app.disable('x-powered-by');
 
 // Server routes
 app.use('/cartnest/auth', authRoutes);
@@ -83,6 +102,12 @@ app.use('/cartnest/shops', shopRoutes);
 app.use('/cartnest/products', productRoutes);
 app.use('/cartnest/orders', orderRoutes);
 app.use('/cartnest/carts', cartRoutes);
+app.use('/cartnest/analytics', AnalyticsRoutes)
+app.use('/cartnest/landing-page', landingPageRoutes);
+app.use('/cartnest/system-analytics-sales', systemAnalyticsSalesRoutes);
+app.use('/cartnest/system-analytics-vendors', systemAnalyticsVendorsRoutes);
+
+
 // app.use('/cartnest/mail', mailerRoutes);
 // Start the server
 app.listen(port, () => {

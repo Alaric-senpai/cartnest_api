@@ -111,7 +111,7 @@ exports.listProducts= async () => {
         const conn = await pool.getConnection();
 
         const result = await conn.query(
-            "select * from products"
+            "select * from products where instock>0"
         )
 
         conn.release();
@@ -277,3 +277,113 @@ exports.deleteProduct = async (product_id)=>{
     }
 }
 
+exports.VerifyInStcck = async(product)=>{
+    try {
+        console.log('from stock verification')
+        console.log(product)
+        const conn = await pool.getConnection()
+
+        const query = await conn.query("select instock from products where id=?",[product]);
+
+        console.log(query)
+
+         conn.release()
+
+        if(!query){
+            return {
+                success: false,
+                message: 'Query failed',
+                status:501
+            }
+        }
+
+        return {
+            success: true,
+            instock:query[0].instock,
+            message:'Instock data found'
+        }
+
+    } catch (error) {
+        throw error
+    }
+}
+/**
+ * 
+ * @param {*} product The product number
+ * @param {*} actions The actions to do 
+ * @example "purchase" = when purchasing a product,
+ * @example "update" = when the vendor is adding the product sin stock
+ * @param {*} number cthe number to add or subtract from stock
+ * @returns 
+ */
+exports.UpdateInstock = async(product, actions, number)=>{
+    try {
+        
+        console.log(product)
+
+        const conn = await pool.getConnection()
+
+        // if(actions === 'purchase')
+
+        let query;
+        let totalProcutsRemaining
+        const instock = await this.VerifyInStcck(product)
+        if(!instock.success){
+            return instock
+        }
+        console.log(instock)
+        switch (actions) {
+            case 'purchase':
+                if(parseInt(instock.instock) < 0){
+                    return {
+                        success:false,
+                        message: 'The product you are attempting to purchase is currently out of stock',
+                        status: 402
+                    }
+                }
+
+                if(parseInt(instock.instock) < parseInt(number)){
+                    return {
+                        success: false,
+                        Message: 'The number of products you are attempting to purchase exceed the current products stock qunatity',
+                        status: 402
+                    }
+                }
+
+                 totalProcutsRemaining = parseInt(instock.instock) - number
+                
+                break;
+            case 'update':
+                 totalProcutsRemaining = parseInt(instock.instock) + number
+
+                    break
+            default:
+                return {
+                        success:false,
+                        message: 'Invalid Product action',
+                        status: 402
+                    }
+                }
+                console.log(totalProcutsRemaining)
+                query = await conn.query("update products set instock=? where id=?", [totalProcutsRemaining, product])
+
+                console.log(query)
+
+                conn.release()
+
+                if(!query){
+                    return {
+                        success: false,
+                        message: 'Product action failed',
+                        status:402
+                    }
+                }
+                return {
+                    success: true,
+                    message: 'Products instock updated successfully',
+                    status: 200
+                }
+    } catch (error) {
+        throw error
+    }
+}

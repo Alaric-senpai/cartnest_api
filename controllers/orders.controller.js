@@ -1,7 +1,7 @@
 const ordersModel = require('../models/orders.model')
 const userModel = require('../models/user.model')
 const cartsModel = require('../models/carts.model')
-
+const ProductsModel = require('../models/product.model')
 
 exports.placeSingleOrder = async(req, res) =>{
     const { product, vendor, quantity, price } = req.body
@@ -21,11 +21,14 @@ exports.placeSingleOrder = async(req, res) =>{
 
     try {
         
+        // const UpdateProductRegistry = await ProductsModel.UpdateInstock(product, 'purchase', quantity)
+        // if(!UpdateProductRegistry.success){
+        //     return res.status(400).json(UpdateProductRegistry)
+        // }
         const order = await ordersModel.singleOrder(userid, product, vendor, quantity, price)
-
         console.log(order)
-
         if(!order.success){
+
             return res.status(400).json(
                 {
                     message: order.message,
@@ -56,6 +59,7 @@ exports.placeSingleOrder = async(req, res) =>{
     }
 
 }
+
 
 exports.confirmSingleOrder = async(req, res)=>{
     const { order_id } = req.body 

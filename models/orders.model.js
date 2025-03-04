@@ -1,7 +1,7 @@
 const pool = require('../config/db.config');
 const cartModel = require('./carts.model');
 const globalFns = require('../global/global.class');
-
+const ProductsModel = require('../models/product.model')
 exports.exists = async (user_id, product_id) => {
     try {
         const conn = await pool.getConnection();
@@ -22,11 +22,13 @@ exports.exists = async (user_id, product_id) => {
 
 exports.singleOrder = async (user, product, vendor, quantity, price) => {
     try {
+        console.log('from single orders')
         const conn = await pool.getConnection();
         const order = await conn.query(
             "INSERT INTO orders (user_id, product_id, vendor, totalprice, quantity, type) VALUES (?, ?, ?, ?, ?,?)",
             [user, product, vendor, price, quantity, "single"]
         );
+        console.log(order)
         conn.release();
 
         // console.log(order)
@@ -68,7 +70,7 @@ exports.completeOrder = async (orderId, userId) => {
         conn.release();
 
         console.log(query)
-        if (query.affectedRows > 0) {
+        if (query.affectedRows > 0 && query.affectedRows < 2 ) {
             return { message: 'Order completed', success: true };
         }
         return { message: 'Query failed', success: false };
@@ -84,6 +86,13 @@ exports.cancelSingleOrder = async (orderId, userId) => {
             "UPDATE orders SET status = 'cancelled' WHERE id = ? AND user_id = ?",
             [orderId, userId]
         );
+
+
+        // return stock to normal 
+
+
+
+
         conn.release();
 
         if (query.affectedRows > 0) {
@@ -131,46 +140,46 @@ exports.shopOrders = async (vendor) => {
     }
 };
 
-async function updateRecords(action, productId, quantity) {
-    try {
-        const conn = await pool.getConnection();
+// async function updateRecords(action, productId, quantity) {
+//     try {
+//         const conn = await pool.getConnection();
 
-        console.log("product")
-        console.log("Action", action)
-        console.log("Product", productId)
-        console.log("Qunatity" , quantity)
+//         console.log("product")
+//         console.log("Action", action)
+//         console.log("Product", productId)
+//         console.log("Qunatity" , quantity)
 
-        console.log("update records")
+//         console.log("update records")
 
-        const product = await conn.query(
-            "SELECT * FROM products WHERE id = ? LIMIT 1",
-            [productId]
-        );
-        console.log(product)
-        if (product.length < 1) {
-            conn.release();
-            return { message: 'Product not found', success: false };
-        }
+//         const product = await conn.query(
+//             "SELECT * FROM products WHERE id = ? LIMIT 1",
+//             [productId]
+//         );
+//         console.log(product)
+//         if (product.length < 1) {
+//             conn.release();
+//             return { message: 'Product not found', success: false };
+//         }
 
-        let instock = product[0].instock;
-        instock += action === 'shop' ? -quantity : quantity;
+//         let instock = product[0].instock;
+//         instock += action === 'shop' ? -quantity : quantity;
 
-        const update = await conn.query(
-            "UPDATE products SET instock = ? WHERE id = ?",
-            [instock, productId]
-        );
-        conn.release();
+//         const update = await conn.query(
+//             "UPDATE products SET instock = ? WHERE id = ?",
+//             [instock, productId]
+//         );
+//         conn.release();
 
-        console.log(update)
+//         console.log(update)
 
-        if (update.affectedRows > 0) {
-            return { message: 'Stock updated', success: true };
-        }
-        return { message: 'Stock update failed', success: false };
-    } catch (error) {
-        throw error;
-    }
-}
+//         if (update.affectedRows > 0) {
+//             return { message: 'Stock updated', success: true };
+//         }
+//         return { message: 'Stock update failed', success: false };
+//     } catch (error) {
+//         throw error;
+//     }
+// }
 
 exports.checkoutOrder = async (orderId, user, payMethod, payCode, amount, shippingMethod, customerId) => {
     try {
@@ -268,8 +277,10 @@ async function OrderProcessing(orderId, userId) {
                 console.log( "cart Goods", cart)
                 if (cart.success) {
                     for (let item =0 ; item < cart.products.length ; item++) {
+                        let product = cart.products[item]
                         console.log("item", cart.products[item])
-                        const update = await updateRecords('shop', cart.products[item].product_id, cart.products[item].quantity);
+                        // const update = await updateRecords('shop', cart.products[item].product_id, cart.products[item].quantity);
+                        const update = await ProductsModel.UpdateInstock(product.product_id, 'purchase', product.quantity)
                         if (!update.success) {
                             return update;
                         }
@@ -277,7 +288,8 @@ async function OrderProcessing(orderId, userId) {
                 }
             } else {
                 console.log("Single prodcut instance")
-                const update = await updateRecords('shop', order.product_id, order.quantity);
+                const update = await ProductsModel.UpdateInstock(order.product_id, 'purchase', order.quantity)
+                // const update = await updateRecords('shop', order.product_id, order.quantity);
                 console.log(update)
                 if (!update.success) {
                     return update;
@@ -333,6 +345,36 @@ async function disableCart(cartid) {
     }
     catch(error)
     {
+        throw error
+    }
+}
+
+
+exports.GetOrdersByStatus = async (status)=>{
+    try {
+        
+        const conn = await pool.getConnection();
+
+        const rest = await conn.query("select * from orders where status=?",[status])
+
+        conn.release()
+
+        return rest;
+
+    } catch (error) {
+        throw error
+    }
+}
+exports.GetAllOrders = async()=>{
+    try {
+        
+        const conn = await pool.getConnection()
+
+        const query = await conn.query("select * from orders")
+
+        return query
+
+    } catch (error) {
         throw error
     }
 }

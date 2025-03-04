@@ -4,13 +4,17 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "nodemon server.js"
+    "dev": "nodemon --exec 'clear && node server.js'",
+    "start": "node server.js",
+    "gen": "node rand.js",
+    "mail": "node mailer.js"
   },
   "keywords": [],
   "author": "kahuho Charles",
   "license": "ISC",
   "description": "a api for a sample ecommerce site",
   "dependencies": {
+    "@arcjet/node": "^1.0.0-beta.2",
     "@treblle/express": "^1.0.1",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -22,7 +26,11 @@
     "jsonwebtoken": "^9.0.2",
     "mailersend": "^2.3.0",
     "mariadb": "^3.3.2",
-    "node-mailjet": "^6.0.6"
+    "node-cron": "^3.0.3",
+    "node-mailjet": "^6.0.6",
+    "nodemailer": "^6.10.0",
+    "resend": "^4.1.2",
+    "ua-parser-js": "^2.0.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.7"

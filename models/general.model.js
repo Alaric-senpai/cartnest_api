@@ -39,7 +39,7 @@ exports.users = async () =>{
         const conn = await pool.getConnection();
 
         const result = await conn.query(
-            "select * from users"
+            "select id, email, role, created_at, updated_at from users"
         )
 
         conn.release();

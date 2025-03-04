@@ -1,12 +1,16 @@
-const mail = require('../mailer/send.email')
+const { sendPasswordResetEmail } = require('../mailer/mailerjet.mailer')
+const { sendPasswordResetSuccess, sendResetPasswordEmail } = require('../mailer/resend/resend.mailer')
+// const mail = require('../mailer/send.email')
 const authModel = require('../models/user.model')
 // const express= require('express')
 
 
 exports.resetPassword = async(req, res)=>{
 
-    const params = req.query
-    const email = params.email
+    // const params = req.query
+    // const email = params.email
+
+    const {email} = req.body
 
     const code = await generateUniqueCode()
     console.log(code)
@@ -18,7 +22,7 @@ exports.resetPassword = async(req, res)=>{
         
 
         if(setToken.success){
-            const sendemail = await mail.resetPassword(email, code)
+            const sendemail = await sendResetPasswordEmail(email, email,code )
 
             if(sendemail.success){
                 return res.status(200).json(

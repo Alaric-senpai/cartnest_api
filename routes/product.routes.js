@@ -13,5 +13,7 @@ router.get('/product', productController.getProductbyId),
 router.get('/category', productController.getProductsbyCategory),
 router.get('/brand', productController.getProductsbyBrand)
 router.get('/trending', productController.trendingProducts)
+router.get('/instock', productController.GetInStock)
+router.patch('/instock',productController.UpdateProductReqistry)
 router.get('/vendor', vendorMiddleware.VerifyVendor, productController.getProductsbyVendor)
 module.exports = router

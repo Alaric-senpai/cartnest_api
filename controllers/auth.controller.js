@@ -3,8 +3,11 @@ const userModel =  require('../models/user.model')
 const bcrypt = require('bcryptjs')
 const shopModel = require('../models/shop.model')
 // const mail = require('../mailer/send.email')
-const mailer = require('../mailer/send.email')
-
+// const mailer = require('../mailer/send.email')
+const envConfig = require('../env.config');
+const { sendWelcomeEmail, sendLoginAlert, sendPasswordResetSuccess } = require('../mailer/resend/resend.mailer');
+const UAParser = require('ua-parser-js');
+const { emit } = require('nodemon');
 // register logic 
 exports.register = async (req, res) =>{
     const { username, email, role, password, firstname, lastname} = req.body;
@@ -13,10 +16,10 @@ exports.register = async (req, res) =>{
         if(!user.success){
             return res.status(401).json({message: user.message, success:user.success })
         }
-        // let fullname = firstname + " " + lastname;
+        let fullname = firstname + " " + lastname;
         
         
-        const welcome = await mailer.WelcomeEmail(username, email, lastname);
+        const welcome =  await sendWelcomeEmail(email, fullname )
         // console.log(welcome)
         if (!welcome.success) {
             return res.status(401).json({message: welcome.message, success:welcome.success })
@@ -34,8 +37,30 @@ exports.register = async (req, res) =>{
 
 
 // login logic 
+
+/**
+ * method to allow log in
+ * 
+ */
+
 exports.login = async(req, res) =>{
+    // console.log(req.body)
     const {email, password} = req.body;
+
+    const getIpAddress = (req) => {
+        return req.headers['x-forwarded-for']?.split(',')[0] || req.connection.remoteAddress;
+    };
+    
+
+    const getDeviceInfo = (req) => {
+    const parser = new UAParser();
+    parser.setUA(req.headers['user-agent']);
+    const result = parser.getResult();
+
+    return `Browser: ${result.browser.name || 'Unknown Browser'}, OS: ${result.os.name || 'Unknown OS'}, Device: ${result.device.model || 'Unknown Device'}`;
+};
+
+    
 
     // console.log(req.body);
     try {
@@ -63,6 +88,11 @@ exports.login = async(req, res) =>{
                 }
             );
         }
+
+        const ipAddress = getIpAddress(req);
+        const deviceInfo = getDeviceInfo(req);
+        await sendLoginAlert(email, email, ipAddress, deviceInfo);
+
 
         
         if(userdetails.role == 'vendor'){
@@ -119,14 +149,49 @@ exports.login = async(req, res) =>{
 
 
 
-        }else{
+        }else if(userdetails.role == 'admin'){
+            
+
+            const token = await jwt.sign({
+                userid: userdetails.id,
+                userrole:userdetails.role,
+                useremail:userdetails.email
+            },
+            envConfig.JWT_SECRET,
+            {
+                expiresIn: '6h'
+            }
+        )
+
+        const admintoken = await jwt.sign({
+            message: 'Encoded only in admin user',
+            role: userdetails.role
+        },
+        envConfig.ADMIN_HASH_KEY,
+        {
+            expiresIn: '6h'
+        }
+    )
+
+        return res.status(200).json(
+            {
+                message: 'Login successfull',
+                 token:token,
+                 admintoken,
+                 userrole:userdetails.role,
+                 success:true
+            }
+        )
+
+        }
+        else{
             const token = jwt.sign(
                 {
                     userid: userdetails.id,
                     userrole:userdetails.role,
                     useremail:userdetails.email
                 },
-                process.env.JWT_SECRET,
+                envConfig.JWT_SECRET,
                 {
                     expiresIn: '6h'
                 }
@@ -154,6 +219,8 @@ exports.login = async(req, res) =>{
 }
 
 
+
+// delete user logic
 exports.deleteUser = async(req, res) =>{
     const {email} = req.body;
     try {
@@ -169,13 +236,13 @@ exports.deleteUser = async(req, res) =>{
     }
 }
 
+
+// password reser logic 
 exports.reset = async (req, res) => {
-    console.log("Reset Password Endpoint Hit");
 
     const { email, password } = req.body;
 
     // Log request body for debugging
-    console.log("Request Body:", req.body);
 
     if (!email || !password) {
         return res.status(400).json({
@@ -186,7 +253,7 @@ exports.reset = async (req, res) => {
 
     try {
         const reset = await userModel.newPass(email, password);
-
+        await sendPasswordResetSuccess(email, email)
         if (reset.success) {
             return res.status(200).json({
                 message: reset.message,
@@ -199,7 +266,6 @@ exports.reset = async (req, res) => {
             success: reset.success,
         });
     } catch (error) {
-        console.error("Error in Reset Password:", error);
 
         return res.status(500).json({
             message: "Internal server error",
@@ -209,6 +275,7 @@ exports.reset = async (req, res) => {
     }
 };
 
+// confirm password reset token 
 exports.confirm = async (req, res) => {
     const { email, code }= req.body
 
@@ -247,6 +314,8 @@ exports.confirm = async (req, res) => {
     }
 }
 
+
+// get user details by email address 
 exports.user = async(req, res)=>{
     try {
 
@@ -267,3 +336,41 @@ exports.user = async(req, res)=>{
         })
     }
 }
+
+
+/**
+ * 
+ * @param {*} req 
+ * @param {*} res 
+ * @returns current user inforrmation
+ */
+exports.me = async(req, res)=>{
+
+    console.log('i was invoked')
+
+    try {
+        const user = req?.user
+
+        if(!user){
+            return res.status(400).json({
+                message: 'User credentials not found',
+                success:false
+            })
+        }
+
+        return res.status(200).json({
+            message: 'User credentials fetched',
+            ...user,
+            success: true
+        })
+
+    } catch (error) {
+        console.log('error', error)
+        return res.status(500).json({
+            success: false,
+            message:error.message,
+            errordetails: error
+        })
+    }
+}
+

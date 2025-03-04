@@ -239,3 +239,62 @@ exports.trendingProducts = async(req, res)=>{
         })
     }
 }
+
+/**
+ * 
+ * 
+ * @returns the number of the specified products in stock
+ */
+exports.GetInStock = async(req, res)=>{
+    try {
+        
+        const params = req.query
+
+        // console.log(params)
+
+        const productId = params.product
+        console.log(productId)
+
+        const inStock = await productModel.VerifyInStcck(productId)
+
+        if(!inStock.success){
+            res.status(404).json(inStock)
+        }
+
+        return res.status(201).json(inStock)
+
+    } catch (error) {
+        return res.status(500).json(
+            {
+                message: error.message,
+                error: error.error
+            }
+        )
+    }
+}
+
+/**
+ * update the prduct stuch accordingly
+ * 
+ *  
+ */
+exports.UpdateProductReqistry = async(req, res)=>{
+    try {
+        const {product, quantity} = req.body
+        console.log(req.body)
+        const update = await productModel.UpdateInstock(product, 'update', quantity)
+
+        if(!update.success){
+            res.status(404).json(update)
+        }
+        res.status(200).json(update)
+
+    } catch (error) {
+        return res.status(500).json(
+            {
+                message: error.message,
+                error: error.error
+            }
+        )
+    }
+}
