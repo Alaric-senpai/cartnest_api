@@ -1,7 +1,7 @@
 const cartsModel = require('../models/carts.model')
 
 exports.newCart = async(req, res)=>{
-    const { name, imageurl } = req.body.data;
+    const { name, imageurl } = req.body;
 
 
     const user = req.user
@@ -77,6 +77,8 @@ exports.cartdata = async(req, res)=>{
 
         const cartid = params.cart 
         const cart = await cartsModel.cartInfo(cartid)
+
+        console.log(cart)
 
         if(cart.success){
             return res.status(200).json(cart)
@@ -209,7 +211,6 @@ exports.deletecart = async(req, res)=>{
 
 exports.ProductQuantity = async(req, res)=>{
     const { cart, product, quantity} = req.body
-    console.log(req.body)
     const user = req.user
     const userid = user.userid
 

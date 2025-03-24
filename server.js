@@ -80,6 +80,8 @@ app.use('/', mapRequests)
 function mapRequests(req, res, next){
 
 
+
+
     console.log('A new request for', req.originalUrl, 'issued from host', req.hostname, 'ip address', req.ip)
     next()
     // console.log(res)
@@ -103,8 +105,8 @@ app.use('/cartnest/products', productRoutes);
 app.use('/cartnest/orders', orderRoutes);
 app.use('/cartnest/carts', cartRoutes);
 app.use('/cartnest/analytics', AnalyticsRoutes)
-app.use('/cartnest/landing-page', landingPageRoutes);
-app.use('/cartnest/system-analytics-sales', systemAnalyticsSalesRoutes);
+app.use('/cartnest/landing', landingPageRoutes);
+app.use('/cartnest/sales', systemAnalyticsSalesRoutes);
 app.use('/cartnest/system-analytics-vendors', systemAnalyticsVendorsRoutes);
 
 

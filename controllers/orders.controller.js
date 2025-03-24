@@ -454,3 +454,33 @@ exports.orderData = async(req, res)=>{
     }
 }
 
+exports.ShippingInfo = async(req, res)=>{
+    try{
+        const params = req.query
+        console.log(params)
+        const order = params.order
+
+        const shipping = await ordersModel.ShippingInfo(order)
+
+        console.log('shipping', shipping)
+         // res.json({shipping})
+
+        if(shipping.success){
+            return res.status(200).json(
+            {
+                message: shipping.message,
+                record:shipping.record,
+                success:shipping.success
+            })
+        }
+        return res.status(404).json(shipping)
+
+    }catch(error){
+        console.log(error)
+        return res.status(500).json({
+            message: 'Internal server error',
+            error,
+            success:false
+        })
+    }
+}

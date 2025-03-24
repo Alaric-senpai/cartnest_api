@@ -309,14 +309,15 @@ exports.VerifyInStcck = async(product)=>{
 }
 /**
  * 
- * @param {*} product The product number
- * @param {*} actions The actions to do 
+ * @param {number} product The product number
+ * @param {string} actions The actions to do 
+ * @param {number} user = optinal user variabe 
  * @example "purchase" = when purchasing a product,
  * @example "update" = when the vendor is adding the product sin stock
- * @param {*} number cthe number to add or subtract from stock
+ * @param {number} number cthe number to add or subtract from stock
  * @returns 
  */
-exports.UpdateInstock = async(product, actions, number)=>{
+exports.UpdateInstock = async(product, actions, number, user=1)=>{
     try {
         
         console.log(product)
@@ -334,6 +335,11 @@ exports.UpdateInstock = async(product, actions, number)=>{
         console.log(instock)
         switch (actions) {
             case 'purchase':
+                // /distribute cash to vendors 
+
+
+
+
                 if(parseInt(instock.instock) < 0){
                     return {
                         success:false,
@@ -341,7 +347,6 @@ exports.UpdateInstock = async(product, actions, number)=>{
                         status: 402
                     }
                 }
-
                 if(parseInt(instock.instock) < parseInt(number)){
                     return {
                         success: false,
@@ -349,6 +354,33 @@ exports.UpdateInstock = async(product, actions, number)=>{
                         status: 402
                     }
                 }
+
+
+                    // distibution code 
+
+
+                        /**
+                         * get product details
+                         */
+
+                    const productinfo = await this.getproductById(product)
+
+                    if(!productinfo.success){
+                        return productinfo
+                    }
+
+                    let productData  = productinfo.product
+                    /**
+                     * register product sale
+                     */
+
+                    const registerSales = await registerProductSales( product ,productData.vendor,number, user)
+
+
+                    if(!registerSales.success){
+                        return registerSales
+                    }
+
 
                  totalProcutsRemaining = parseInt(instock.instock) - number
                 
@@ -384,6 +416,40 @@ exports.UpdateInstock = async(product, actions, number)=>{
                     status: 200
                 }
     } catch (error) {
+        throw error
+    }
+}
+
+
+/**
+ * register a sale in the salse table
+ * @param {number} vendor -> the vendor buying the product from
+ * @param {number} count -> number of products bought
+ * @param {number} user -> the user who bought the product
+ * @param {number} product 
+ */
+
+async function registerProductSales( product, vendor, count, user){
+    try{
+        const conn = await pool.getConnection()
+
+        const query = await conn.query("insert into sales(product_id, vendor_id, quantity, userid) values(?,?,?)",[product, vendor, count, user])
+
+        await conn.release()
+
+        if(!query){
+            return {
+                message: 'sale Registration failure',
+                success:false
+            }
+        }
+
+        return {
+            message: 'Sale registered successfully',
+            success:true
+        }
+
+    }catch(error){
         throw error
     }
 }

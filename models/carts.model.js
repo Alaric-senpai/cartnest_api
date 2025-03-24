@@ -67,7 +67,7 @@ async function incart(cartid, product, user) {
             [user, product, cartid]
         );
 
-        conn.release();
+        await conn.release();
 
         if (!available) {
             return {
@@ -166,7 +166,7 @@ async function isEditable(cartid) {
 
         const cart = query[0]
 
-        conn.release()
+        await conn.release()
 
         if(cart.is_editable == 1){
             return {
@@ -195,7 +195,7 @@ async function addGoods(userid, vendor, product, quantity, cart) {
             "insert into carted_goods(user_id, product_id, vendor, cart_id, quantity) values(?,?,?,?,?)",
             [userid, product, vendor, cart, quantity]
         );
-        conn.release();
+        await conn.release();
 
         if (!good) {
             return {
@@ -224,7 +224,7 @@ exports.cartInfo = async(cartid)=>{
             [cartid]
         )
 
-        conn.release()
+        await conn.release()
 
         if(query){
             return {
@@ -353,3 +353,15 @@ exports.RemoveProduct = async (cart_id, productid)=>{
         throw error
     }
 }
+
+
+// exports.cart = async(id)=>{
+//     try{
+//         const conn = await pool.getConnection()
+
+//         const query = await conn.query("select * from carts where id=?", [id])
+//         console.log(query)
+//     }catch(error){
+//         throw error
+//     }
+// }

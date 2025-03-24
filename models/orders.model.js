@@ -1,7 +1,8 @@
 const pool = require('../config/db.config');
 const cartModel = require('./carts.model');
 const globalFns = require('../global/global.class');
-const ProductsModel = require('../models/product.model')
+const ProductsModel = require('../models/product.model');
+const SystemAnalyticsSales = require('./systemAnalyticsSales');
 exports.exists = async (user_id, product_id) => {
     try {
         const conn = await pool.getConnection();
@@ -187,8 +188,22 @@ exports.checkoutOrder = async (orderId, user, payMethod, payCode, amount, shippi
         const payment = await paymentRecords(user, payMethod, payCode, amount, orderId, trackingCode);
         console.log(payment)
         if (payment.success) {
+
+            // add taxing here 
+
+            const tax_amount  = (.5 * amount).toFixed(2)
+
+            const taxing = await SystemAnalyticsSales.create(orderId, user, tax_amount)
+
+            if(!taxing.success){
+                return {
+                    message: 'Taxing error detected',
+                    success: false
+                }
+            }
+
+
             const orderProcessing = await OrderProcessing(orderId, user);
-            console.log(orderProcessing)
             if (orderProcessing.success) {
                 const shipping = await Shipping(orderId, trackingCode, shippingMethod, customerId);
                 if (shipping.success) {
@@ -253,34 +268,22 @@ async function Shipping(orderId, trackingCode, shippingMethod, customerId) {
 async function OrderProcessing(orderId, userId) {
     try {
         const orderDetails = await exports.GetorderDetails(orderId);
-        console.log("order details")
-        console.log(orderDetails)
+
         if (orderDetails.success) {
             const order = orderDetails.order;
             if (order.cartid !== null) {
-                console.log("cart instance")
 
-                console.log("Order details from inside cart ops", order.cartid)
-
-                // console.log(order.id)
+                // cartorder processing processing 
 
                 const disable = await disableCart(order.cartid)
-
-                console.log(disable)
-
-
                 if(!disable.success){
                     return disable
                 }
-
                 const cart = await cartModel.cartGoods(userId, order.cartid);
-                console.log( "cart Goods", cart)
                 if (cart.success) {
                     for (let item =0 ; item < cart.products.length ; item++) {
                         let product = cart.products[item]
-                        console.log("item", cart.products[item])
-                        // const update = await updateRecords('shop', cart.products[item].product_id, cart.products[item].quantity);
-                        const update = await ProductsModel.UpdateInstock(product.product_id, 'purchase', product.quantity)
+                        const update = await ProductsModel.UpdateInstock(product.product_id, 'purchase', product.quantity, userId)
                         if (!update.success) {
                             return update;
                         }
@@ -288,9 +291,8 @@ async function OrderProcessing(orderId, userId) {
                 }
             } else {
                 console.log("Single prodcut instance")
-                const update = await ProductsModel.UpdateInstock(order.product_id, 'purchase', order.quantity)
+                const update = await ProductsModel.UpdateInstock(order.product_id, 'purchase', order.quantity, userId)
                 // const update = await updateRecords('shop', order.product_id, order.quantity);
-                console.log(update)
                 if (!update.success) {
                     return update;
                 }
@@ -375,6 +377,33 @@ exports.GetAllOrders = async()=>{
         return query
 
     } catch (error) {
+        throw error
+    }
+}
+
+exports.ShippingInfo = async(order_id)=>{
+    try{
+        console.log(order_id)
+        const conn = await pool.getConnection()
+        const query = await conn.query("select * from order_deliveries where id=? order by id desc", [order_id])
+
+        console.log(query)
+
+        await conn.release()
+
+        if(!query){
+            return {
+                message: 'Query failure',
+                success: false
+            }
+        }
+
+        return {
+            message: 'Records found',
+            record:query[0],
+            success:true
+        }
+    }catch(error){
         throw error
     }
 }

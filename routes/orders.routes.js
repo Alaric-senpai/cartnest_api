@@ -16,4 +16,5 @@ router.get('/user/all', authMiddleware.verify,orderController.myorders)
 router.get('/order/data', authMiddleware.verify, orderController.orderData)
 router.get('/vendor', orderController.shopOrders)
 router.get('/vendorext', orderController.shopOrdersExtview)
+router.get('/order/shipping', authMiddleware.verify, orderController.ShippingInfo)
 module.exports = router
