@@ -24,11 +24,12 @@ DROP TABLE IF EXISTS `admin_bookmarks`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `admin_bookmarks` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
   `boomarked_id` int(11) NOT NULL,
   `type` varchar(255) NOT NULL,
-  `added_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `added_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -49,12 +50,13 @@ DROP TABLE IF EXISTS `admin_reminders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `admin_reminders` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) DEFAULT NULL,
   `title` text DEFAULT NULL,
   `content` text DEFAULT NULL,
   `dated` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -67,21 +69,22 @@ LOCK TABLES `admin_reminders` WRITE;
 /*!40000 ALTER TABLE `admin_reminders` ENABLE KEYS */;
 UNLOCK TABLES;
 
---
--- Table structure for table `admin_users`
---
+-- --
+-- -- Table structure for table `admin_users`
+-- --
 
 DROP TABLE IF EXISTS `admin_users`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `admin_users` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
   `firstname` text DEFAULT NULL,
   `lastname` text DEFAULT NULL,
   `birthdate` int(11) DEFAULT NULL,
   `bio` text DEFAULT NULL,
-  `profile` text DEFAULT NULL
+  `profile` text DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -137,14 +140,16 @@ DROP TABLE IF EXISTS `assignments`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `assignments` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `lesson_id` int(11) DEFAULT NULL,
   `title` varchar(255) NOT NULL,
   `instructions` text DEFAULT NULL,
   `submissions` int(255) NOT NULL,
   `status` varchar(255) NOT NULL DEFAULT 'open',
   `due_date` date DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    PRIMARY KEY (`id`)
+
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -274,7 +279,7 @@ CREATE TABLE `carts` (
   `user_id` int(11) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `image` text DEFAULT NULL,
-  `status` text NOT NULL DEFAULT 'active',
+  `status` varchar(255) NOT NULL DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL,
   `is_editable` int(11) NOT NULL DEFAULT 1,
@@ -316,7 +321,7 @@ CREATE TABLE `categories` (
   `category_name` varchar(255) NOT NULL,
   `longname` text DEFAULT NULL,
   `description` text DEFAULT NULL,
-  `image` text DEFAULT 'images/product_img.jpg',
+  `image` varchar(255) DEFAULT 'https://t3.ftcdn.net/jpg/02/85/90/44/360_F_285904463_52tKiXp592qUhmg24eS3f4k1kGQSji3f.jpg',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
@@ -472,7 +477,7 @@ CREATE TABLE `discounts` (
   `valid_until` timestamp NOT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
-  UNIQUE KEY `discount_code` (`discount_code`) USING HASH
+  UNIQUE KEY `discount_code` (`discount_code`(32)) USING HASH
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -561,7 +566,7 @@ CREATE TABLE `orders` (
   `product_id` int(11) DEFAULT NULL,
   `vendor` int(11) DEFAULT NULL,
   `quantity` int(11) DEFAULT NULL,
-  `status` text DEFAULT 'draft',
+  `status` ENUM('draft','completed','cancelled') NOT NULL DEFAULT 'draft',
   `added_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL,
   `type` varchar(255) NOT NULL,
@@ -637,7 +642,7 @@ CREATE TABLE `products` (
   `price` decimal(7,2) NOT NULL,
   `instock` int(11) NOT NULL DEFAULT 1,
   `main_image` text NOT NULL,
-  `trending` text DEFAULT 'no',
+  `trending` ENUM('yes','no') NOT NULL DEFAULT 'no',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `category` (`category`),
@@ -957,7 +962,7 @@ CREATE TABLE `shop_owners` (
   `firstname` varchar(255) DEFAULT NULL,
   `lasttname` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `contact_email_2` (`contact_email_2`) USING HASH
+  UNIQUE KEY `contact_email_2` (`contact_email_2`(191))
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -994,9 +999,9 @@ CREATE TABLE `shops` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`shop_id`),
-  UNIQUE KEY `business_registration_number` (`business_registration_number`) USING HASH,
-  UNIQUE KEY `bank_account_details` (`bank_account_details`) USING HASH,
-  UNIQUE KEY `tax_identification_number` (`tax_identification_number`) USING HASH,
+  UNIQUE KEY `business_registration_number` (`business_registration_number`(191)) USING HASH,
+  UNIQUE KEY `bank_account_details` (`bank_account_details`(191)) USING HASH,
+  UNIQUE KEY `tax_identification_number` (`tax_identification_number`(191)) USING HASH,
   KEY `owner_id` (`owner_id`),
   CONSTRAINT `shops_ibfk_1` FOREIGN KEY (`owner_id`) REFERENCES `users`.`id` (`owner_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

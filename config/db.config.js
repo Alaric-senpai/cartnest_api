@@ -6,7 +6,7 @@ const pool = mariadb.createPool(
         user: envConfig.DB_USERNAME,
         password: envConfig.DB_PASSWORD,
         database: envConfig.DB_DATABASE,
-        connectionLimit: 100
+        connectionLimit: 100000000
     }
 );
 

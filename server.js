@@ -69,7 +69,7 @@ app.use(cors(corsOptions));
 // Rate Limiting to prevent DoS attacks
 const apiLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minutes
-    max: 200, // Limit each IP to 100 requests per window
+    max: 700, // Limit each IP to 100 requests per window
     message: 'Too many requests from this IP, please try again later',
     
 });
