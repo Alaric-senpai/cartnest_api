@@ -42,6 +42,9 @@ const port = envConfig.PORT ;
 // app.use(helmet());
 
 
+app.set('trust proxy', 1); // Trust the first proxy
+
+
 const allowedOrigins = [
     'https://www.cartnest.site',
     'https://cartnest.site',
@@ -66,6 +69,8 @@ const corsOptions ={
 // };
 app.use(cors(corsOptions));
 
+
+
 // Rate Limiting to prevent DoS attacks
 const apiLimiter = rateLimit({
     windowMs: 1 * 60 * 1000, // 1 minutes
@@ -79,13 +84,8 @@ app.use('/', mapRequests)
 
 function mapRequests(req, res, next){
 
-
-
-
     console.log('A new request for', req.originalUrl, 'issued from host', req.hostname, 'ip address', req.ip)
     next()
-    // console.log(res)
-
 }
 
 
