@@ -1,16 +1,17 @@
 const mariadb = require('mariadb');
 const fs = require('fs');
-require('dotenv').config(); // Or your own env config
+const path = require('path');
+require('dotenv').config();
 
 const isProduction = process.env.NODE_ENV === 'production';
 
 const sslOptions = isProduction
   ? {
-      ca: fs.readFileSync('../ca.pem'),
+      ca: fs.readFileSync(path.resolve(__dirname, '../ca.pem'), 'utf8'),
       rejectUnauthorized: true
     }
-  : { 
-      rejectUnauthorized: false // Optional: allow self-signed or skip in dev
+  : {
+      rejectUnauthorized: false // for local/dev environments
     };
 
 const pool = mariadb.createPool({
@@ -18,7 +19,7 @@ const pool = mariadb.createPool({
   user: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  connectionLimit: 10,
+  connectionLimit: 1000,
   acquireTimeout: 120000,
   ssl: sslOptions
 });
