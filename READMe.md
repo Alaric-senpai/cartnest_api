@@ -54,5 +54,5 @@
 # Authors
 ***
 
-###### This magnificent short of perfect work of art was crafted by Charles Kahuho[https://github.com/Alaric-senpai]
+###### This madness of art was crafted by Charles Kahuho[https://github.com/Alaric-senpai]
 . Attribute when used
