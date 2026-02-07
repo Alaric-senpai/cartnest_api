@@ -13,6 +13,7 @@
     "prisma:pull": "prisma db pull",
     "build": "tsc -p tsconfig.json",
     "test:watch": "vitest"
+    "prisma:pull": "prisma db pull"
   },
   "keywords": [],
   "author": "kahuho Charles",
@@ -48,4 +49,6 @@
     "@types/express": "^5.0.0"
   },
   "type": "module"
+    "prisma": "^6.3.1"
+  }
 }
