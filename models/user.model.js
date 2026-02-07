@@ -4,60 +4,62 @@ const bcrypt = require('bcryptjs');
 
 
 // register method 
-exports.createUser = async(username, email, role, password, firstname, lastname) =>{
-
+exports.createUser = async (username, email, role, password, firstname, lastname) => {
+    let conn;
     try {
+        const userRegistered = await this.findUserByEmail(email);
 
-
-        const userRegisered = await this.findUserByEmail(email);
-
-        if(userRegisered.success){
-            return { message: 'User is Already registered try to login', success:true }
+        if (userRegistered.success) {
+            return { message: 'User is Already registered try to login', success: false };
         }
+
         const hashed = await bcrypt.hash(password, 10);
-        const conn = await pool.getConnection();
+        conn = await pool.getConnection();
+        await conn.beginTransaction();
+
         const result = await conn.query(
-            "insert into users(username, email, role, password) values(?,?,?,?)",
+            'insert into users(username, email, role, password) values(?,?,?,?)',
             [username, email, role, hashed]
         );
 
-        if(!result){
-            return { message: 'User not created', success:false }
-        }
+        let respectiveInsert;
 
-        let respectiveinsert;
-
-        if(role == "customer"){
-             respectiveinsert = await conn.query(
-                "insert into customers (user_id, first_name, last_name) values(?,?,?)",
+        if (role === 'customer') {
+            respectiveInsert = await conn.query(
+                'insert into customers (user_id, first_name, last_name) values(?,?,?)',
                 [result.insertId, firstname, lastname]
             );
-        }else if(role == "vendor"){
-             respectiveinsert  = await conn.query(
-                "insert into shop_owners (user_id, firstname, lasttname) values(?,?,?)",
+        } else if (role === 'vendor') {
+            respectiveInsert = await conn.query(
+                'insert into shop_owners (user_id, firstname, lasttname) values(?,?,?)',
                 [result.insertId, firstname, lastname]
             );
-        }else if(role == "admin"){
-             respectiveinsert  = await conn.query(
-                "insert into admins (user_id, firstname, lastname) values(?,?,?)",
+        } else if (role === 'admin') {
+            respectiveInsert = await conn.query(
+                'insert into admins (user_id, firstname, lastname) values(?,?,?)',
                 [result.insertId, firstname, lastname]
             );
+        } else {
+            await conn.rollback();
+            return { message: 'Invalid user role', success: false };
         }
 
-        conn.release();
-        if(!respectiveinsert){
-            return { message:`insert not registered correctly`, success:false }
-        }else{
-            return { message: 'User registered successully', success:true };
-
+        if (!respectiveInsert) {
+            await conn.rollback();
+            return { message: 'insert not registered correctly', success: false };
         }
 
-
+        await conn.commit();
+        return { message: 'User registered successully', success: true };
     } catch (error) {
-        console.log(error)
+        if (conn) {
+            await conn.rollback();
+        }
         throw error;
+    } finally {
+        if (conn) conn.release();
     }
-}
+};
 
 
 // login method is ok
@@ -115,40 +117,36 @@ async  function deleteUserFromTypetable(userid, usertype){
 
 
 
-exports.deleteUserByEmail = async(email) =>{
+exports.deleteUserByEmail = async (email) => {
+    let conn;
     try {
-        
-        const user = await this.findUserByEmail(email);
-        
-        if(!user){
-            return{ message: 'User not found', success:false }
+        const userResult = await this.findUserByEmail(email);
+
+        if (!userResult.success) {
+            return { message: 'User not found', success: false };
         }
 
-
+        const user = userResult.user;
         const deleteType = await deleteUserFromTypetable(user.id, user.role);
 
-        if(!deleteType){
-            return { message: `No user found in the ${user.role}'s tables`, success:false }
-        }
-        const conn = await pool.getConnection();
-
-        const delResult = await conn.query(
-            "delete from users where email=?",[email]
-        );
-        conn.release()
-        if(!delResult){
-            return { message: 'User not found in main table', success:false };
+        if (!deleteType) {
+            return { message: `No user found in the ${user.role}'s tables`, success: false };
         }
 
-        return { message: 'User deleted successfully', success:true}
-        
+        conn = await pool.getConnection();
+        const delResult = await conn.query('delete from users where email=?', [email]);
 
+        if (!delResult || delResult.affectedRows === 0) {
+            return { message: 'User not found in main table', success: false };
+        }
 
-
+        return { message: 'User deleted successfully', success: true };
     } catch (error) {
-        throw error
+        throw error;
+    } finally {
+        if (conn) conn.release();
     }
-}
+};
 
 exports.storeToken = async (email, code) => {
     try {
@@ -183,34 +181,35 @@ exports.storeToken = async (email, code) => {
 };
 
 
-exports.newPass = async(email, password) =>{
+exports.newPass = async (email, password) => {
+    let conn;
     try {
-        
-        const conn = await pool.getConnection()
+        conn = await pool.getConnection();
 
-        const hashedPass = await bcrypt.hash(password, 10)
+        const hashedPass = await bcrypt.hash(password, 10);
 
         const query = await conn.query(
-            "update users set password=?, resetToken=? where email=? ",
+            'update users set password=?, resetToken=? where email=? ',
             [hashedPass, null, email]
-        )
+        );
 
-        if(query.affectedRows > 0){
+        if (query.affectedRows > 0) {
             return {
                 message: 'Password updated successfully',
                 success: true
-            }
+            };
         }
 
         return {
             message: 'Password update failed',
             success: false
-        }
-
+        };
     } catch (error) {
-        throw error
+        throw error;
+    } finally {
+        if (conn) conn.release();
     }
-}
+};
 
 exports.confirmToken = async (email, token) => {
     try {
